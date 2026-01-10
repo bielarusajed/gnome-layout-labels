@@ -1,4 +1,9 @@
 <schemalist>
   <schema id="org.gnome.shell.extensions.layout-labels" path="/org/gnome/shell/extensions/layout-labels/">
+    <key name="labels" type="a{ss}">
+      <default>{}</default>
+      <summary>Custom labels for XKB input sources</summary>
+      <description>Maps XKB source IDs (e.g., "by+latin") to custom labels (e.g., "Lat")</description>
+    </key>
   </schema>
 </schemalist>

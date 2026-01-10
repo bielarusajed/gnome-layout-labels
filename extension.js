@@ -15,12 +15,138 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-export default class PlainExampleExtension extends Extension {
+import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
+
+export default class LayoutLabelsExtension extends Extension {
     enable() {
+        this._settings = this.getSettings();
+        this._inputSourceManager = Keyboard.getInputSourceManager();
+
+        if (!this._inputSourceManager) {
+            console.warn('[layout-labels] InputSourceManager not available');
+            return;
+        }
+
+        // Store original shortNames to restore on disable
+        this._originalShortNames = new Map();
+
+        // Apply custom labels to all input sources
+        this._applyLabels();
+
+        // Re-apply labels when settings change
+        this._settingsChangedId = this._settings.connect(
+            'changed::labels',
+            () => this._applyLabels()
+        );
+
+        // Re-apply labels when input sources are reloaded
+        this._sourcesChangedId = this._inputSourceManager.connect(
+            'sources-changed',
+            () => {
+                this._originalShortNames.clear();
+                this._applyLabels();
+            }
+        );
+
+        console.log('[layout-labels] Extension enabled');
     }
 
     disable() {
+        // Restore original shortNames
+        this._restoreOriginalLabels();
+
+        if (this._settingsChangedId && this._settings) {
+            this._settings.disconnect(this._settingsChangedId);
+            this._settingsChangedId = null;
+        }
+
+        if (this._sourcesChangedId && this._inputSourceManager) {
+            this._inputSourceManager.disconnect(this._sourcesChangedId);
+            this._sourcesChangedId = null;
+        }
+
+        this._originalShortNames = null;
+        this._settings = null;
+        this._inputSourceManager = null;
+
+        console.log('[layout-labels] Extension disabled');
+    }
+
+    _applyLabels() {
+        if (!this._inputSourceManager) {
+            return;
+        }
+
+        const labelsVariant = this._settings.get_value('labels');
+        const labelsDict = labelsVariant.deepUnpack() || {};
+
+        // Get all input sources
+        const inputSources = this._inputSourceManager.inputSources;
+        if (!inputSources) {
+            return;
+        }
+
+        // Iterate through all input sources and apply custom labels
+        for (const index in inputSources) {
+            const source = inputSources[index];
+            if (!source || source.type !== 'xkb') {
+                continue;
+            }
+
+            const sourceId = source.id;
+            const customLabel = labelsDict[sourceId];
+
+            // Store original shortName if not already stored
+            if (!this._originalShortNames.has(sourceId)) {
+                this._originalShortNames.set(sourceId, source.shortName);
+            }
+
+            if (customLabel) {
+                // Directly modify the shortName property
+                source.shortName = customLabel;
+            } else {
+                // Restore original if no custom label
+                const original = this._originalShortNames.get(sourceId);
+                if (original) {
+                    source.shortName = original;
+                }
+            }
+        }
+
+        // Force the indicator to refresh
+        const indicator = Main.panel.statusArea.keyboard;
+        if (indicator && indicator._sync) {
+            indicator._sync();
+        }
+    }
+
+    _restoreOriginalLabels() {
+        if (!this._inputSourceManager || !this._originalShortNames) {
+            return;
+        }
+
+        const inputSources = this._inputSourceManager.inputSources;
+        if (!inputSources) {
+            return;
+        }
+
+        for (const index in inputSources) {
+            const source = inputSources[index];
+            if (!source) continue;
+
+            const original = this._originalShortNames.get(source.id);
+            if (original) {
+                source.shortName = original;
+            }
+        }
+
+        // Force the indicator to refresh
+        const indicator = Main.panel.statusArea.keyboard;
+        if (indicator && indicator._sync) {
+            indicator._sync();
+        }
     }
 }
