@@ -4,4 +4,4 @@ Simply change the layout labels for the keyboard layout indicator in the top pan
 
 Install here: https://extensions.gnome.org/extension/9156/keyboard-layouts-labels/
 
-<img width="1971" height="682" alt="Screenshot" src="https://github.com/user-attachments/assets/95de49da-e88a-4a69-aef1-27fff230af52" />
+<img width="2951" height="682" alt="Screenshot" src="https://github.com/user-attachments/assets/e3bc5767-b4e7-429b-9941-be47ada10b3c" />
