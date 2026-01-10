@@ -1,0 +1,9 @@
+{
+  "name": "Keyboard layouts labels",
+  "description": "Label your layouts to see in layout indicator",
+  "uuid": "layout-labels@bielarusajed.gay",
+  "settings-schema": "org.gnome.shell.extensions.layout-labels",
+  "shell-version": [
+    "49"
+  ]
+}
