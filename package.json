@@ -1,0 +1,23 @@
+{
+  "name": "gnome-layout-labels",
+  "version": "1.0.0",
+  "description": "Simply change the layout labels for the keyboard layout indicator in the top panel to anything you want",
+  "homepage": "https://github.com/bielarusajed/gnome-layout-labels#readme",
+  "bugs": {
+    "url": "https://github.com/bielarusajed/gnome-layout-labels/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bielarusajed/gnome-layout-labels.git"
+  },
+  "license": "GPL-2.0-or-later",
+  "author": "Aliaksiej Razumaŭ",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "biome check --write"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.11"
+  }
+}

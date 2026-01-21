@@ -17,90 +17,93 @@
  */
 
 import Adw from 'gi://Adw';
-import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
-import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { gettext as _, ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 const LayoutLabelRow = GObject.registerClass(
-class LayoutLabelRow extends Adw.ActionRow {
+  class LayoutLabelRow extends Adw.ActionRow {
     _init(sourceId, currentLabel, settings) {
-        super._init({
-            title: sourceId,
-            subtitle: _('Shown as: %s').format(currentLabel || sourceId),
-        });
+      super._init({
+        title: sourceId,
+        subtitle: _('Shown as: %s').format(currentLabel || sourceId),
+      });
 
-        this._sourceId = sourceId;
-        this._settings = settings;
+      this._sourceId = sourceId;
+      this._settings = settings;
 
-        const entry = new Gtk.Entry({
-            text: currentLabel || '',
-            placeholder_text: sourceId,
-            width_chars: 10,
-        });
+      const entry = new Gtk.Entry({
+        text: currentLabel || '',
+        placeholder_text: sourceId,
+        width_chars: 10,
+      });
 
-        entry.connect('changed', () => {
-            this._updateLabel(entry.text);
-        });
+      entry.connect('changed', () => {
+        this._updateLabel(entry.text);
+      });
 
-        this.add_suffix(entry);
-        this._entry = entry;
+      this.add_suffix(entry);
+      this._entry = entry;
     }
 
     _updateLabel(text) {
-        const labelsVariant = this._settings.get_value('labels');
-        const labelsDict = labelsVariant.deepUnpack() || {};
+      const labelsVariant = this._settings.get_value('labels');
+      const labelsDict = labelsVariant.deepUnpack() || {};
 
-        if (text && text.trim()) {
-            labelsDict[this._sourceId] = text.trim();
-        } else {
-            delete labelsDict[this._sourceId];
-        }
+      if (text?.trim()) {
+        labelsDict[this._sourceId] = text.trim();
+      } else {
+        delete labelsDict[this._sourceId];
+      }
 
-        // Convert back to a{ss} format using GLib.Variant
-        const variant = GLib.Variant.new('a{ss}', labelsDict);
-        this._settings.set_value('labels', variant);
-        this.subtitle = _('Shown as: %s').format(text.trim() || this._sourceId);
+      // Convert back to a{ss} format using GLib.Variant
+      const variant = GLib.Variant.new('a{ss}', labelsDict);
+      this._settings.set_value('labels', variant);
+      this.subtitle = _('Shown as: %s').format(text.trim() || this._sourceId);
     }
-});
+  },
+);
 
 export default class LayoutLabelsPreferences extends ExtensionPreferences {
-    fillPreferencesWindow(window) {
-        const page = new Adw.PreferencesPage({
-            title: _('Layout Labels'),
-        });
+  fillPreferencesWindow(window) {
+    const page = new Adw.PreferencesPage({
+      title: _('Layout Labels'),
+    });
 
-        const group = new Adw.PreferencesGroup({
-            title: _('Custom Labels'),
-            description: _('Set custom labels for your keyboard layouts. Leave empty to use the default label.'),
-        });
+    const group = new Adw.PreferencesGroup({
+      title: _('Custom Labels'),
+      description: _('Set custom labels for your keyboard layouts. Leave empty to use the default label.'),
+    });
 
-        const settings = this.getSettings();
-        const inputSourcesSettings = new Gio.Settings({
-            schema_id: 'org.gnome.desktop.input-sources',
-        });
+    const settings = this.getSettings();
+    const inputSourcesSettings = new Gio.Settings({
+      schema_id: 'org.gnome.desktop.input-sources',
+    });
 
-        const sources = inputSourcesSettings.get_value('sources').deepUnpack();
-        const xkbSources = sources.filter(([type]) => type === 'xkb');
+    const sources = inputSourcesSettings.get_value('sources').deepUnpack();
+    const xkbSources = sources.filter(([type]) => type === 'xkb');
 
-        if (xkbSources.length === 0) {
-            group.add(new Adw.ActionRow({
-                title: _('No XKB layouts found'),
-                subtitle: _('Add keyboard layouts in Settings to configure custom labels.'),
-            }));
-        } else {
-            const labelsVariant = settings.get_value('labels');
-            const labelsDict = labelsVariant.deepUnpack() || {};
+    if (xkbSources.length === 0) {
+      group.add(
+        new Adw.ActionRow({
+          title: _('No XKB layouts found'),
+          subtitle: _('Add keyboard layouts in Settings to configure custom labels.'),
+        }),
+      );
+    } else {
+      const labelsVariant = settings.get_value('labels');
+      const labelsDict = labelsVariant.deepUnpack() || {};
 
-            for (const [, sourceId] of xkbSources) {
-                const currentLabel = labelsDict[sourceId] || '';
-                group.add(new LayoutLabelRow(sourceId, currentLabel, settings));
-            }
-        }
-
-        page.add(group);
-        window.add(page);
+      for (const [, sourceId] of xkbSources) {
+        const currentLabel = labelsDict[sourceId] || '';
+        group.add(new LayoutLabelRow(sourceId, currentLabel, settings));
+      }
     }
+
+    page.add(group);
+    window.add(page);
+  }
 }
