@@ -17,7 +17,6 @@
  */
 
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
 
 export default class LayoutLabelsExtension extends Extension {
@@ -99,10 +98,6 @@ export default class LayoutLabelsExtension extends Extension {
         if (original) source.shortName = original;
       }
     }
-
-    // Force the indicator to refresh
-    const indicator = Main.panel.statusArea.keyboard;
-    if (indicator?._sync) indicator._sync();
   }
 
   _restoreOriginalLabels() {
@@ -118,9 +113,5 @@ export default class LayoutLabelsExtension extends Extension {
       const original = this._originalShortNames.get(source.id);
       if (original) source.shortName = original;
     }
-
-    // Force the indicator to refresh
-    const indicator = Main.panel.statusArea.keyboard;
-    if (indicator?._sync) indicator._sync();
   }
 }
